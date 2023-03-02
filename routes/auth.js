@@ -15,7 +15,6 @@ router.get("/login/success", (req, res) => {
       message: "successfull",
       user: req.user,
       token: token,
-      //   cookies: req.cookies
     });
   }
 });
@@ -31,7 +30,7 @@ router.get("/logout", (req, res) => {
 });
   
 router.get("/google", passport.authenticate("google", { 
-    scope: ["profile"] 
+    scope: ["profile" , "email"] 
   })
 );
   
