@@ -5,19 +5,32 @@ import express from "express";
 import jwt from "jsonwebtoken";
 const router = express.Router();
 
-const CLIENT_URL = "http://localhost:5173/";
+router.get("/google", passport.authenticate("google", { scope: ["profile" , "email"] }));
 
-router.get("/login/success", (req, res) => {
-  if (req.user) {
-    const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET);
-    res.status(200).json({
-      success: true,
-      message: "successfull",
-      user: req.user,
-      token: token,
-    });
+
+router.get("/google/callback", passport.authenticate("google", {
+  failureRedirect: "/login" }),
+  function (req, res) {
+    res.redirect(process.env.CLIENT_URL);
   }
+);
+router.get("/login/success", (req, res) => {
+    if (req.isAuthenticated()) {
+      const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET);
+      res.status(200).json({
+        success: true,
+        message: "successfull",
+        user: req.user,
+        token: token,
+      });
+    } else {
+      res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+      });
+    }
 });
+
 router.get("/login/failed" , (req, res)=>{
     res.status(401).json({
         success: false,
@@ -29,25 +42,4 @@ router.get("/logout", (req, res) => {
   res.redirect("http://localhost:5173/login");
 });
   
-router.get("/google", passport.authenticate("google", { 
-    scope: ["profile" , "email"] 
-  })
-);
-  
-router.get("/google/callback", passport.authenticate("google", {
-    successRedirect: CLIENT_URL,
-    failureRedirect: "/login/failed",
-  })
-);
-
-/*
-router.get("/google/callback", passport.authenticate("google", {
-  failureRedirect: '/login' }),
-  function(req, res) {
-    const {user} = req;
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
-    res.json({ token, user });
-    res.redirect(CLIENT_URL)
-  });
-*/
 export default router;
